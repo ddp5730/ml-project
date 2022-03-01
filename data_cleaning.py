@@ -58,6 +58,7 @@ def clean_np_data(data):
         for attribute_idx in range(data.shape[1]):
             data_val = data[flow_idx, attribute_idx]
             if np.isnan(data_val) or np.isinf(data_val):
+                # TODO: Finalize cleaning approach
                 data[flow_idx, attribute_idx] = get_nearest_value(data, flow_idx, attribute_idx)
                 num_invalid += 1
     print('Updated %d invalid values' % num_invalid)

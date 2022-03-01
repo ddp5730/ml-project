@@ -27,7 +27,6 @@ def get_data(file):
 
     # Drop source port, source ip, and destination IP
     # TODO: Figure out how to handle target port number
-    # TODO: Perform dataset cleaning
 
     labels = df['Label']
 
