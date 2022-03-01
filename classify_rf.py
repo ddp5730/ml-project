@@ -8,6 +8,8 @@ from sklearn.ensemble import RandomForestClassifier
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
+import data_cleaning
+
 DATA_FILE = '/home/poppfd/data/CIC-IDS2018/Processed_Traffic_Data_for_ML_Algorithms/Wednesday-14-02-2018_TrafficForML_CICFlowMeter.csv'
 
 
@@ -30,6 +32,9 @@ def get_data(file):
     labels = df['Label']
 
     data_np = data.to_numpy(dtype=np.float32, na_value=0)
+
+    data_np = data_cleaning.clean_np_data(data_np)
+
     # Normalize data
     data_np = normalize(data_np)
 
