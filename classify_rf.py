@@ -35,6 +35,11 @@ def get_data(file):
 
     data_np = data_cleaning.clean_np_data(data_np)
 
+    is_nan = np.any(np.isnan(data_np))
+    is_finite = np.all(np.isfinite(data_np))
+    print('Data is nan: %s' % str(is_nan))
+    print('Data is finite: %s' % str(is_finite))
+
     # Normalize data
     data_np = normalize(data_np)
 
