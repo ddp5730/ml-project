@@ -6,6 +6,7 @@
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 import pandas as pd
+from sklearn.metrics import accuracy_score, classification_report
 from sklearn.model_selection import train_test_split
 
 import data_cleaning
@@ -65,11 +66,13 @@ def normalize(array):
 
 
 def main():
-    clf = RandomForestClassifier(max_depth=2, random_state=0)
+    clf = RandomForestClassifier(max_depth=2, random_state=0, n_jobs=20)
     data_train, data_test, labels_train, labels_test = get_data(DATA_FILE)
     clf.fit(data_train, labels_train)
 
     predictions = clf.predict(data_test)
+
+    print(classification_report(labels_test, predictions))
 
     print('Done')
 
