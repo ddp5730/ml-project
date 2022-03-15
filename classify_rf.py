@@ -26,15 +26,22 @@ def load_2018_data(data_path):
     """
     all_data = None
     all_labels = []
+    all_dropped = 0
 
     for file in os.listdir(data_path):
-        data, labels = get_data(os.path.join(DATA_ROOT_2018, file))
+        print('Loading file: %s ...' % file)
+        data, labels, num_dropped = get_data(os.path.join(DATA_ROOT_2018, file))
 
         if all_data is None:
             all_data = data
         else:
             all_data = np.concatenate((all_data, data))
         all_labels.append(labels)
+        all_dropped += num_dropped
+
+    print('Total Number of invalid values: %d' % all_dropped)
+    print('Total Data values: %d' % len(all_labels))
+    print('Invalid data: %.2f%%' % (all_dropped / float(all_data.size) * 100))
 
     # Perform test/validation split
     data_train, data_test, labels_train, labels_test = train_test_split(all_data, all_labels, test_size=0.20)
@@ -54,12 +61,19 @@ def get_data(file):
 
     if os.path.exists(pkl_path):
         with open(pkl_path, 'rb') as file:
-            data_np, labels_list = pickle.load(file)
+            data_np, labels_list, num_dropped = pickle.load(file)
     else:
 
-        df = pd.read_csv(file)
-        df['Timestamp'] = pd.to_datetime(df['Timestamp'])
+        df = pd.read_csv(file, dtype={'Timestamp': 'string'})
+        df['Timestamp'] = pd.to_datetime(df['Timestamp'], errors='coerce')
 
+        # Remove invalid Dst Port values
+        types = df.dtypes
+        if types['Dst Port'].name != 'int64':
+            df['C'] = np.where(df['Dst Port'].str.isdigit(), ['Retain'], ['Delete'])
+            df = df[~df['C'].isin(['Delete'])]
+
+            df = df.drop('C', axis=1)
         data = df.drop('Label', axis=1)
 
         # Drop source port, source ip, and destination IP
@@ -70,7 +84,7 @@ def get_data(file):
 
         data_np = data.to_numpy(dtype=np.float32, na_value=0)
 
-        data_np = data_cleaning.clean_np_data(data_np, labels_list)
+        data_np, num_dropped = data_cleaning.clean_np_data(data_np, labels_list)
 
         is_nan = np.any(np.isnan(data_np))
         is_finite = np.all(np.isfinite(data_np))
@@ -81,9 +95,9 @@ def get_data(file):
         data_np = normalize(data_np)
 
         with open(pkl_path, 'wb') as file:
-            pickle.dump((data_np, labels_list), file)
+            pickle.dump((data_np, labels_list, num_dropped), file)
 
-    return data_np, labels_list
+    return data_np, labels_list, num_dropped
 
 
 def normalize(array):

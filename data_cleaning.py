@@ -9,41 +9,6 @@ import numpy as np
 from tqdm import tqdm
 
 
-def get_nearest_value(data, flow_idx, attribute_idx):
-    """
-    Gets the average data value from the preceding and following flow data
-    :param data: the original data
-    :param flow_idx: the flow index of the invalid data
-    :param attribute_idx: the attribute index of the invalid data
-    :return: the average value of the neighboring flows
-    """
-
-    use_preceding = True
-    use_following = True
-
-    if flow_idx == 0:
-        use_preceding = False
-    if flow_idx == data.shape[0] - 1:
-        use_following = False
-
-    if use_preceding:
-        preceding = data[flow_idx - 1, attribute_idx]
-        # Preceding is always guaranteed to be valid
-    if use_following:
-        following = data[flow_idx + 1, attribute_idx]
-        if np.isnan(following) or np.isinf(following):
-            use_following = False
-
-    if use_preceding and use_following:
-        avg_value = 0.5 * (preceding + following)
-    elif use_preceding:
-        avg_value = preceding
-    else:
-        avg_value = following
-
-    return avg_value
-
-
 def clean_np_data(data, labels):
     """
     Cleans the numpy data array.  The effect is to remove NaN and Inf values by using a nearest neighbor approach.
@@ -73,9 +38,10 @@ def clean_np_data(data, labels):
         for attribute_idx in range(data.shape[1]):
             data_val = data[flow_idx, attribute_idx]
             if np.isnan(data_val) or np.isinf(data_val):
-                # TODO: Finalize cleaning approach
+                # Data is cleaned by replacing invalid values with the average value
+                # within the given data class label
                 data[flow_idx, attribute_idx] = class_avg[label][attribute_idx]
                 num_invalid += 1
     print('Updated %d invalid values' % num_invalid)
 
-    return data
+    return data, num_invalid
