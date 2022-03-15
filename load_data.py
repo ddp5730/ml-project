@@ -24,49 +24,57 @@ def load_2018_data(data_path):
     all_labels = []
     all_dropped = 0
 
-    for file in os.listdir(data_path):
-        print('Loading file: %s ...' % file)
-        data, labels, num_dropped = get_data(os.path.join(DATA_ROOT_2018, file))
+    pkl_path = os.path.join(PICKLE_PATH, 'all_data.pkl')
+    if os.path.exists(pkl_path):
+        with open(pkl_path, 'rb') as file:
+            data_train, data_test, labels_train, labels_test = pickle.load(file)
+    else:
+        for file in os.listdir(data_path):
+            print('Loading file: %s ...' % file)
+            data, labels, num_dropped = get_data(os.path.join(DATA_ROOT_2018, file))
 
-        if all_data is None:
-            all_data = data
-        else:
-            all_data = np.concatenate((all_data, data))
-        all_labels += labels
-        all_dropped += num_dropped
+            if all_data is None:
+                all_data = data
+            else:
+                all_data = np.concatenate((all_data, data))
+            all_labels += labels
+            all_dropped += num_dropped
 
-    print('Total Number of invalid values: %d' % all_dropped)
-    print('Total Data values: %d' % len(all_labels))
-    print('Invalid data: %.2f%%' % (all_dropped / float(all_data.size) * 100))
+        print('Total Number of invalid values: %d' % all_dropped)
+        print('Total Data values: %d' % len(all_labels))
+        print('Invalid data: %.2f%%' % (all_dropped / float(all_data.size) * 100))
 
-    # Perform test/validation split
-    data_train, data_test, labels_train, labels_test = train_test_split(all_data, all_labels, test_size=0.20)
+        # Perform test/validation split
+        data_train, data_test, labels_train, labels_test = train_test_split(all_data, all_labels, test_size=0.20)
 
-    # Resample Data
-    class_samples = {}
-    for label in labels_train:
-        if label not in class_samples:
-            class_samples[label] = 1
-        else:
-            class_samples[label] += 1
-    print('Initial Distribution of classes: ' + str(class_samples))
+        # Resample Data
+        class_samples = {}
+        for label in labels_train:
+            if label not in class_samples:
+                class_samples[label] = 1
+            else:
+                class_samples[label] += 1
+        print('Initial Distribution of classes: ' + str(class_samples))
 
-    # Goal is to have all classes represented as 20% of benign data
-    smote_dict = {}
-    target_num = round(class_samples['Benign'] * 0.15)
-    print('Targeting %d samples for each minority class' % target_num)
-    for label in class_samples.keys():
-        if label == 'Benign' or class_samples[label] > target_num:
-            smote_dict[label] = class_samples[label]
-        else:
-            smote_dict[label] = target_num
+        # Goal is to have all classes represented as 20% of benign data
+        smote_dict = {}
+        target_num = round(class_samples['Benign'] * 0.15)
+        print('Targeting %d samples for each minority class' % target_num)
+        for label in class_samples.keys():
+            if label == 'Benign' or class_samples[label] > target_num:
+                smote_dict[label] = class_samples[label]
+            else:
+                smote_dict[label] = target_num
 
-    smote = SMOTEENN(sampling_strategy=smote_dict, n_jobs=20)
-    start = time.time()
-    data_train, labels_train = smote.fit_resample(data_train, labels_train)
-    print('SMOTE took %.2f minutes' % ((time.time() - start) / 60.0))
-    print('Final Distribution of classes: ' + str(class_samples))
-    print('Total Data values: %d' % len(all_labels))
+        smote = SMOTEENN(sampling_strategy=smote_dict, n_jobs=20)
+        start = time.time()
+        data_train, labels_train = smote.fit_resample(data_train, labels_train)
+        print('SMOTE took %.2f minutes' % ((time.time() - start) / 60.0))
+        print('Final Distribution of classes: ' + str(class_samples))
+        print('Total Data values: %d' % len(all_labels))
+
+        with open(pkl_path, 'wb') as file:
+            pickle.dump((data_train, data_test, labels_train, labels_test), file)
 
     return data_train, data_test, labels_train, labels_test
 
