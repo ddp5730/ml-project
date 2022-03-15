@@ -14,9 +14,32 @@ import pickle
 
 import data_cleaning
 
-DATA_FILE = '/home/poppfd/data/CIC-IDS2018/Processed_Traffic_Data_for_ML_Algorithms/Wednesday-14-02-2018_TrafficForML_CICFlowMeter.csv'
+DATA_ROOT_2018 = '/home/poppfd/data/CIC-IDS2018/Processed_Traffic_Data_for_ML_Algorithms/'
 PICKLE_PATH = '/home/poppfd/College/ML_Cyber/ml-project/data/'
-DATA_PICKLE = PICKLE_PATH + 'cleaned.pkl'
+
+
+def load_2018_data(data_path):
+    """
+    Read in the entire 2018 dataset
+    :param data_path: the path to the root data directory
+    :return: a tuple for the full numpy arrays and labels
+    """
+    all_data = None
+    all_labels = []
+
+    for file in os.listdir(data_path):
+        data, labels = get_data(os.path.join(DATA_ROOT_2018, file))
+
+        if all_data is None:
+            all_data = data
+        else:
+            all_data = np.concatenate((all_data, data))
+        all_labels.append(labels)
+
+    # Perform test/validation split
+    data_train, data_test, labels_train, labels_test = train_test_split(all_data, all_labels, test_size=0.20)
+
+    return data_train, data_test, labels_train, labels_test
 
 
 def get_data(file):
@@ -26,8 +49,11 @@ def get_data(file):
     :return: a tuple of numpy arrays and the labels
     """
 
-    if os.path.exists(DATA_PICKLE):
-        with open(DATA_PICKLE, 'rb') as file:
+    filename = os.path.splitext(os.path.basename(file))[0] + '.pkl'
+    pkl_path = os.path.join(PICKLE_PATH, filename)
+
+    if os.path.exists(pkl_path):
+        with open(pkl_path, 'rb') as file:
             data_np, labels_list = pickle.load(file)
     else:
 
@@ -54,13 +80,10 @@ def get_data(file):
         # Normalize data
         data_np = normalize(data_np)
 
-        with open(DATA_PICKLE, 'wb') as file:
+        with open(pkl_path, 'wb') as file:
             pickle.dump((data_np, labels_list), file)
 
-    # Perform test/validation split
-    data_train, data_test, labels_train, labels_test = train_test_split(data_np, labels_list, test_size=0.20)
-
-    return data_train, data_test, labels_train, labels_test
+    return data_np, labels_list
 
 
 def normalize(array):
@@ -79,7 +102,7 @@ def normalize(array):
 
 def main():
     clf = RandomForestClassifier(max_depth=2, random_state=0, n_jobs=20)
-    data_train, data_test, labels_train, labels_test = get_data(DATA_FILE)
+    data_train, data_test, labels_train, labels_test = load_2018_data(DATA_ROOT_2018)
     clf.fit(data_train, labels_train)
 
     predictions = clf.predict(data_test)
