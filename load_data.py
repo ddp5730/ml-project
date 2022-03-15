@@ -1,9 +1,12 @@
+import math
 import os
 import pickle
+import time
 
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
+from imblearn.over_sampling import BorderlineSMOTE
 
 import data_cleaning
 
@@ -35,6 +38,31 @@ def load_2018_data(data_path):
     print('Total Number of invalid values: %d' % all_dropped)
     print('Total Data values: %d' % len(all_labels))
     print('Invalid data: %.2f%%' % (all_dropped / float(all_data.size) * 100))
+
+    # Resample Data
+    class_samples = {}
+    for label in all_labels:
+        if label not in class_samples:
+            class_samples[label] = 1
+        else:
+            class_samples[label] += 1
+    print('Initial Distribution of classes: ' + str(class_samples))
+
+    # Goal is to have all classes represented as 30% of benign data
+    smote_dict = {}
+    target_num = round(class_samples['Benign'] * 0.3)
+    print('Targeting %d samples for each minority class' % target_num)
+    for label in class_samples.keys():
+        if label == 'Benign' or class_samples[label] > target_num:
+            smote_dict[label] = class_samples[label]
+        else:
+            smote_dict[label] = target_num
+
+    smote = BorderlineSMOTE(sampling_strategy=smote_dict)
+    start = time.time()
+    all_data, all_labels = smote.fit_resample(all_data, all_labels)
+    print('SMOTE took %.2f minutes' % ((time.time() - start) / 60.0))
+
 
     # Perform test/validation split
     data_train, data_test, labels_train, labels_test = train_test_split(all_data, all_labels, test_size=0.20)
