@@ -3,15 +3,20 @@
 # Dan Popp
 #
 # This file will classify the given IDS file using a random forest approach
+import os
+
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 import pandas as pd
 from sklearn.metrics import accuracy_score, classification_report
 from sklearn.model_selection import train_test_split
+import pickle
 
 import data_cleaning
 
 DATA_FILE = '/home/poppfd/data/CIC-IDS2018/Processed_Traffic_Data_for_ML_Algorithms/Wednesday-14-02-2018_TrafficForML_CICFlowMeter.csv'
+PICKLE_PATH = '/home/poppfd/College/ML_Cyber/ml-project/data/'
+DATA_PICKLE = PICKLE_PATH + 'cleaned.pkl'
 
 
 def get_data(file):
@@ -21,29 +26,36 @@ def get_data(file):
     :return: a tuple of numpy arrays and the labels
     """
 
-    df = pd.read_csv(file)
-    df['Timestamp'] = pd.to_datetime(df['Timestamp'])
+    if os.path.exists(DATA_PICKLE):
+        with open(DATA_PICKLE, 'rb') as file:
+            data_np, labels_list = pickle.load(file)
+    else:
 
-    data = df.drop('Label', axis=1)
+        df = pd.read_csv(file)
+        df['Timestamp'] = pd.to_datetime(df['Timestamp'])
 
-    # Drop source port, source ip, and destination IP
-    # TODO: Figure out how to handle target port number
+        data = df.drop('Label', axis=1)
 
-    labels = df['Label']
+        # Drop source port, source ip, and destination IP
+        # TODO: Figure out how to handle target port number
 
-    data_np = data.to_numpy(dtype=np.float32, na_value=0)
+        labels = df['Label']
+        labels_list = labels.tolist()
 
-    data_np = data_cleaning.clean_np_data(data_np)
+        data_np = data.to_numpy(dtype=np.float32, na_value=0)
 
-    is_nan = np.any(np.isnan(data_np))
-    is_finite = np.all(np.isfinite(data_np))
-    print('Data is nan: %s' % str(is_nan))
-    print('Data is finite: %s' % str(is_finite))
+        data_np = data_cleaning.clean_np_data(data_np, labels_list)
 
-    # Normalize data
-    data_np = normalize(data_np)
+        is_nan = np.any(np.isnan(data_np))
+        is_finite = np.all(np.isfinite(data_np))
+        print('Data is nan: %s' % str(is_nan))
+        print('Data is finite: %s' % str(is_finite))
 
-    labels_list = labels.tolist()
+        # Normalize data
+        data_np = normalize(data_np)
+
+        with open(DATA_PICKLE, 'wb') as file:
+            pickle.dump((data_np, labels_list), file)
 
     # Perform test/validation split
     data_train, data_test, labels_train, labels_test = train_test_split(data_np, labels_list, test_size=0.20)
