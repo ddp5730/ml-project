@@ -1,15 +1,13 @@
 import os
 import pickle
-import time
 
 import numpy as np
 import pandas as pd
-from imblearn.over_sampling import SMOTE
-from imblearn.under_sampling import RandomUnderSampler
+import torch
 from sklearn.model_selection import train_test_split
+from torch.utils.data import TensorDataset
 
 import data_preprocessing
-
 from data_preprocessing import resample_data
 
 PICKLE_PATH = '/home/poppfd/College/ML_Cyber/ml-project/data/'
@@ -58,6 +56,19 @@ def load_2018_data(data_path):
     return data_train, data_test, labels_train, labels_test
 
 
+def get_datasets(data_path):
+    data_train, data_test, labels_train, labels_test = load_2018_data(data_path)
+    data_train = torch.tensor(data_train)
+    data_test = torch.tensor(data_test)
+    labels_train = torch.tensor(labels_train)
+    labels_test = torch.tensor(labels_test)
+
+    loader_train = TensorDataset(data_train, labels_train)
+    loader_test = TensorDataset(data_test, labels_test)
+
+    return loader_train, loader_test
+
+
 def get_data(file):
     """
     Reads the csv file using pandas and returns the data and labels as numpy arrays
@@ -100,7 +111,7 @@ def get_data(file):
 
         data_np = data.to_numpy(dtype=np.float32, na_value=0)
 
-        data_np, num_dropped = data_cleaning.clean_np_data(data_np, labels_list)
+        data_np, num_dropped = data_preprocessing.clean_np_data(data_np, labels_list)
 
         is_nan = np.any(np.isnan(data_np))
         is_finite = np.all(np.isfinite(data_np))

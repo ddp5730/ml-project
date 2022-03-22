@@ -7,11 +7,11 @@ import os
 import sys
 import time
 
+import matplotlib.pyplot as plt
 import numpy as np
 from imblearn.over_sampling import SMOTE
 from imblearn.under_sampling import RandomUnderSampler
 from tqdm import tqdm
-import matplotlib.pyplot as plt
 
 
 def clean_np_data(data, labels):
