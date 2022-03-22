@@ -3,10 +3,12 @@
 # Dan Popp
 #
 # This file will classify the given IDS file using a random forest approach
+import os
 import time
 
+from matplotlib import pyplot as plt
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import classification_report
+from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay
 
 from load_data import load_2018_data
 
@@ -26,6 +28,10 @@ def main():
     predictions = clf.predict(data_test)
 
     print(classification_report(labels_test, predictions))
+    cf_matrix = confusion_matrix(labels_test, predictions)
+    disp = ConfusionMatrixDisplay(confusion_matrix=cf_matrix)
+    disp.plot()
+    plt.savefig(os.path.join('./out/', 'rf_cf.png'))
 
     print('Done')
 

@@ -48,7 +48,8 @@ def load_2018_data(data_path):
         data_train, data_test, labels_train, labels_test = train_test_split(all_data, all_labels, test_size=0.20)
 
         # Resample Data
-        data_train, data_test, classes_to_drop = resample_data(data_train, labels_train)
+        data_train, labels_train, classes_to_drop = resample_data(data_train, labels_train)
+        data_test, labels_test = data_preprocessing.drop_classes(data_test, labels_test, classes_to_drop)
 
         with open(pkl_path, 'wb') as file:
             pickle.dump((data_train, data_test, labels_train, labels_test), file)

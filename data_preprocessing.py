@@ -9,7 +9,7 @@ import time
 
 import matplotlib.pyplot as plt
 import numpy as np
-from imblearn.over_sampling import SMOTE
+from imblearn.over_sampling import SMOTE, RandomOverSampler
 from imblearn.under_sampling import RandomUnderSampler
 from tqdm import tqdm
 
@@ -120,7 +120,8 @@ def resample_data(data, labels):
         else:
             smote_dict[label] = target_num
 
-    smote = SMOTE(sampling_strategy=smote_dict, n_jobs=20)
+    # smote = SMOTE(sampling_strategy=smote_dict, n_jobs=20)
+    smote = RandomOverSampler(sampling_strategy=smote_dict)
     start = time.time()
     data, labels = smote.fit_resample(data, labels)
     print('SMOTE took %.2f minutes' % ((time.time() - start) / 60.0))
@@ -131,7 +132,7 @@ def resample_data(data, labels):
         else:
             class_samples[label] += 1
     save_class_hist(class_samples, 'after_smote_2018')
-    print('Total Data values: %d' % len(orig_samples))
+    print('Total Data values: %d' % orig_samples)
 
     return data, labels, classes_to_drop
 
@@ -167,5 +168,6 @@ def save_class_hist(samples_dict: dict, name: str):
     plt.xlabel('Class Name')
     plt.xticks(rotation=90)
     plt.grid(True)
+    plt.tight_layout()
     plt.savefig(os.path.join('./out/', '%s.png' % name))
     plt.clf()
