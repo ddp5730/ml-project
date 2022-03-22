@@ -1,14 +1,16 @@
-import math
 import os
 import pickle
 import time
 
 import numpy as np
 import pandas as pd
+from imblearn.over_sampling import SMOTE
+from imblearn.under_sampling import RandomUnderSampler
 from sklearn.model_selection import train_test_split
-from imblearn.combine import SMOTEENN
 
-import data_cleaning
+import data_preprocessing
+
+from data_preprocessing import resample_data
 
 PICKLE_PATH = '/home/poppfd/College/ML_Cyber/ml-project/data/'
 DATA_ROOT_2018 = '/home/poppfd/data/CIC-IDS2018/Processed_Traffic_Data_for_ML_Algorithms/'
@@ -48,30 +50,7 @@ def load_2018_data(data_path):
         data_train, data_test, labels_train, labels_test = train_test_split(all_data, all_labels, test_size=0.20)
 
         # Resample Data
-        class_samples = {}
-        for label in labels_train:
-            if label not in class_samples:
-                class_samples[label] = 1
-            else:
-                class_samples[label] += 1
-        print('Initial Distribution of classes: ' + str(class_samples))
-
-        # Goal is to have all classes represented as 20% of benign data
-        smote_dict = {}
-        target_num = round(class_samples['Benign'] * 0.15)
-        print('Targeting %d samples for each minority class' % target_num)
-        for label in class_samples.keys():
-            if label == 'Benign' or class_samples[label] > target_num:
-                smote_dict[label] = class_samples[label]
-            else:
-                smote_dict[label] = target_num
-
-        smote = SMOTEENN(sampling_strategy=smote_dict, n_jobs=20)
-        start = time.time()
-        data_train, labels_train = smote.fit_resample(data_train, labels_train)
-        print('SMOTE took %.2f minutes' % ((time.time() - start) / 60.0))
-        print('Final Distribution of classes: ' + str(class_samples))
-        print('Total Data values: %d' % len(all_labels))
+        data_train, data_test, classes_to_drop = resample_data(data_train, labels_train)
 
         with open(pkl_path, 'wb') as file:
             pickle.dump((data_train, data_test, labels_train, labels_test), file)
