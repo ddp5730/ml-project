@@ -13,6 +13,7 @@ from torch.utils.data import RandomSampler, SequentialSampler
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
+import eval_mlp
 from load_data import get_datasets
 
 DATA_ROOT_2018 = '/home/poppfd/data/CIC-IDS2018/Processed_Traffic_Data_for_ML_Algorithms/'
@@ -23,7 +24,9 @@ class MLP(nn.Module):
         super().__init__()
         self.layer1 = nn.Linear(num_features, 100)
         self.layer2 = nn.Linear(100, 200)
-        self.layer3 = nn.Linear(200, 100)
+        self.layer3 = nn.Linear(200, 500)
+        self.layer4 = nn.Linear(500, 200)
+        self.layer5 = nn.Linear(200, 100)
         self.fc = nn.Linear(100, num_classes)
 
         self.act = nn.ReLU()
@@ -33,6 +36,8 @@ class MLP(nn.Module):
         x = self.act(self.layer1(x))
         x = self.act(self.layer2(x))
         x = self.act(self.layer3(x))
+        x = self.act(self.layer4(x))
+        x = self.act(self.layer5(x))
         x = self.fc(x)
         x = self.softmax(x)
 
@@ -48,7 +53,8 @@ def train_mlp(name, args):
     test = 'test'
 
     batch_size = args.batch_size
-    eval_batch_freq = -1
+    eval_batch_size = args.eval_batch_size
+    eval_batch_freq = 50000
     num_epochs = args.num_epochs
     warmup_epochs = args.warmup_epochs
     learning_rate = args.learning_rate
@@ -76,6 +82,7 @@ def train_mlp(name, args):
 
     # Initialize Model
     model = MLP(79, num_classes)
+    print(model)
 
     for param in model.parameters():
         param.requires_grad = True
@@ -181,7 +188,7 @@ def train_model(model, criterion, optimizer, scheduler, dataloaders, device, eva
                 if phase == train and eval_batch_freq > 0:
                     if (idx + 1) % eval_batch_freq == 0:
                         # Evaluate the model every set number of batches
-                        model_f1, model_acc = eval.eval_model(model, dataloaders[test], device)
+                        model_f1, model_acc = eval_mlp.eval_model(model, dataloaders[test], device)
                         validation_accuracies.append(model_acc)
                         if model_f1 > best_f1:
                             best_f1 = model_f1

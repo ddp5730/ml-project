@@ -61,13 +61,38 @@ def get_datasets(data_path):
     data_train, data_test, labels_train, labels_test = load_2018_data(data_path)
     data_train = torch.tensor(data_train)
     data_test = torch.tensor(data_test)
-    labels_train = torch.tensor(labels_train)
-    labels_test = torch.tensor(labels_test)
 
-    loader_train = TensorDataset(data_train, labels_train)
-    loader_test = TensorDataset(data_test, labels_test)
+    # Convert string list to list of integers
+    label_mapping = {}
+    value = 0
+    for label in labels_test:
+        if label not in label_mapping:
+            label_mapping[label] = value
+            value += 1
 
-    return loader_train, loader_test
+    labels_idx_train = []
+    for i in range(len(labels_train)):
+        label = labels_train[i]
+        value = label_mapping[label]
+        labels_idx_train.append(value)
+
+    labels_idx_test = []
+    for i in range(len(labels_test)):
+        label = labels_test[i]
+        value = label_mapping[label]
+        labels_idx_test.append(value)
+
+    labels_train = torch.tensor(labels_idx_train)
+    labels_test = torch.tensor(labels_idx_test)
+    classes = list(label_mapping.keys())
+
+    dataset_train = TensorDataset(data_train, labels_train)
+    dataset_test = TensorDataset(data_test, labels_test)
+
+    dataset_train.classes = classes
+    dataset_test.classes = classes
+
+    return dataset_train, dataset_test
 
 
 def get_data(file):
