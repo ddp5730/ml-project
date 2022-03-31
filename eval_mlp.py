@@ -4,23 +4,15 @@
 #
 # This script will train an EfficientNet model on Rareplanes to use as a baseline for a CNN comparison
 import argparse
-import copy
 import os
 import sys
-import time
 
-import timm
 import torch
-from timm.data import create_transform
-from timm.scheduler import CosineLRScheduler
-from torch import nn, optim
-from torch.utils.data import RandomSampler, SequentialSampler
-from torch.utils.tensorboard import SummaryWriter
-from torchvision import transforms, datasets, models
-from torchvision.transforms import InterpolationMode
-from tqdm import tqdm
 from sklearn.metrics import f1_score, accuracy_score
+from torch.utils.data import RandomSampler, SequentialSampler
+from tqdm import tqdm
 
+from load_data import get_datasets
 from mlp import MLP
 
 
@@ -30,7 +22,6 @@ def eval_setup(pretrained_path, args):
     """
 
     batch_size = args.batch_size
-    test = test
     model = args.model
 
     # Load dataset
