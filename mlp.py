@@ -22,12 +22,15 @@ DATA_ROOT_2018 = '/home/poppfd/data/CIC-IDS2018/Processed_Traffic_Data_for_ML_Al
 class MLP(nn.Module):
     def __init__(self, num_features, num_classes):
         super().__init__()
+
+        self.num_out_features = 100
         self.layer1 = nn.Linear(num_features, 100)
         self.layer2 = nn.Linear(100, 200)
         self.layer3 = nn.Linear(200, 500)
         self.layer4 = nn.Linear(500, 200)
-        self.layer5 = nn.Linear(200, 100)
+        self.layer5 = nn.Linear(200, self.num_out_features)
         self.fc = nn.Linear(100, num_classes)
+
 
         self.act = nn.ReLU()
         self.softmax = nn.Softmax(dim=0)
@@ -62,7 +65,8 @@ def train_mlp(name, args):
     warmup_lr = args.warmup_lr
 
     # Load dataset
-    dataset_train, dataset_test = get_datasets(DATA_ROOT_2018)
+    # is_2018 = args.data_root == DATA_ROOT_2018
+    dataset_train, dataset_test = get_datasets(args.data_root)
     datasets = {train: dataset_train, test: dataset_test}
 
     samplers = {}
@@ -81,11 +85,19 @@ def train_mlp(name, args):
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
     # Initialize Model
-    model = MLP(79, num_classes)
+    model = MLP(77, args.source_classes)
     print(model)
+    if args.transfer_learn != 'None':
+        path = args.pretrained_path
+        model.load_state_dict(torch.load(path))
+        model.fc = nn.Linear(model.num_out_features, num_classes)
 
-    for param in model.parameters():
-        param.requires_grad = True
+    if args.transfer_learn == 'None':
+        for param in model.parameters():
+            param.requires_grad = True
+    elif args.transfer_learn == 'freeze_feature':
+        for param in model.fc.parameters():
+            param.requires_grad = True
 
     model = model.to(device)
 
@@ -253,6 +265,7 @@ def train_model(model, criterion, optimizer, scheduler, dataloaders, device, eva
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--name', type=str, required=True, help='Name for the run')
+    parser.add_argument('--data-root', type=str, required=True)
     parser.add_argument('--batch-size', type=int, required=True)
     parser.add_argument('--eval-batch-size', type=int, required=True)
     parser.add_argument('--num-epochs', type=int, required=True)
@@ -261,6 +274,9 @@ def main():
     parser.add_argument('--min-lr', type=float, required=True)
     parser.add_argument('--warmup-lr', type=float, required=True)
     parser.add_argument('--dataset', choices=['2018', '2017'], default=2018)
+    parser.add_argument('--transfer-learn', choices=['None', 'freeze-feature', 'retrain-all'], default='None')
+    parser.add_argument('--source-classes', type=int, required=True)
+    parser.add_argument('--pretrained-path', type=str, default='')
 
     args = parser.parse_args()
 

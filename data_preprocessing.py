@@ -77,10 +77,13 @@ def resample_data(data, labels, is_2018=True):
     for class_name in class_samples.keys():
         if class_name != 'Benign' and class_samples[class_name] > largest_min_num:
             largest_min_num = class_samples[class_name]
-    target_benign = 10 * largest_min_num
-    print('Reducing Benign data from %d to %d samples' % (benign_num, target_benign))
-    undersampler = RandomUnderSampler(sampling_strategy={'Benign': target_benign})
-    data, labels = undersampler.fit_resample(data, labels)
+    target_benign = 5 * largest_min_num
+    if target_benign < benign_num:
+        print('Reducing Benign data from %d to %d samples' % (benign_num, target_benign))
+        undersampler = RandomUnderSampler(sampling_strategy={'Benign': target_benign})
+        data, labels = undersampler.fit_resample(data, labels)
+    else:
+        print('Not reducing benign samples')
 
     print('Finished Undersampling')
     class_samples = {}
