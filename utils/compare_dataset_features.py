@@ -82,8 +82,7 @@ attributes_2017 = ['Destination Port',
                    'Idle Std',
                    'Idle Max',
                    'Idle Min',
-                   'Label',
-                   'Fwd Header Length.1']
+                   'Label']
 
 attributes_2018 = ['Dst Port',
                    'Flow Duration',
@@ -162,9 +161,7 @@ attributes_2018 = ['Dst Port',
                    'Idle Std',
                    'Idle Max',
                    'Idle Min',
-                   'Label',
-                   'Protocol',
-                   'Timestamp']
+                   'Label']
 
 unique_2017_attributes = ['Fwd Header Length.1']
 unique_2018_attributes = ['Protocol',
@@ -187,6 +184,10 @@ def main():
     print(data_2017.columns)
 
     attribute_map_2017_to_2018 = get_attribute_map(debug=True)
+
+    print('\n----------------------------------------------------------------\n')
+    print('Unique 2018 labels: %s' % (str(data_2018['Label'].unique())))
+    print('Unique 2017 labels: %s' % (str(data_2017['Label'].unique())))
 
     print('Done')
 

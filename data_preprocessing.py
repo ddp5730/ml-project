@@ -52,7 +52,7 @@ def clean_np_data(data, labels):
     return data, num_invalid
 
 
-def resample_data(data, labels):
+def resample_data(data, labels, is_2018=True):
     """
     Resample the data.  Undersamples the benign data so it's only 10x greater than largest minority using
     RandomUnderSampler.  Then any minority class less than 1% of the majority class is dropped.
@@ -69,7 +69,7 @@ def resample_data(data, labels):
             class_samples[label] = 1
         else:
             class_samples[label] += 1
-    save_class_hist(class_samples, 'orig_dist_2018')
+    save_class_hist(class_samples, 'orig_dist_%d' % (2018 if is_2018 else 2017))
 
     # Undersample Benign Data to 10x greater than next largest class
     benign_num = class_samples['Benign']
@@ -89,7 +89,7 @@ def resample_data(data, labels):
             class_samples[label] = 1
         else:
             class_samples[label] += 1
-    save_class_hist(class_samples, 'after_undersampling_2018')
+    save_class_hist(class_samples, 'after_undersampling_%d' % (2018 if is_2018 else 2017))
 
     # Drop extreme minority classes
     min_class_count = 0.01 * class_samples['Benign']
@@ -108,7 +108,7 @@ def resample_data(data, labels):
             class_samples[label] = 1
         else:
             class_samples[label] += 1
-    save_class_hist(class_samples, 'after_dropping_2018')
+    save_class_hist(class_samples, 'after_dropping_%d' % (2018 if is_2018 else 2017))
 
     # Goal is to have all classes represented as 20% of benign data
     smote_dict = {}
@@ -131,7 +131,7 @@ def resample_data(data, labels):
             class_samples[label] = 1
         else:
             class_samples[label] += 1
-    save_class_hist(class_samples, 'after_smote_2018')
+    save_class_hist(class_samples, 'after_smote_%d' % (2018 if is_2018 else 2017))
     print('Total Data values: %d' % orig_samples)
 
     return data, labels, classes_to_drop

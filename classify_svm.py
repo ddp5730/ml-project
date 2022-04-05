@@ -6,14 +6,14 @@
 from sklearn.metrics import classification_report
 from sklearn.svm import LinearSVC
 
-from load_data import load_2018_data
+from load_data import load_data
 
 DATA_ROOT_2018 = '/home/poppfd/data/CIC-IDS2018/Processed_Traffic_Data_for_ML_Algorithms/'
 
 
 def main():
     clf = LinearSVC(verbose=1)
-    data_train, data_test, labels_train, labels_test = load_2018_data(DATA_ROOT_2018)
+    data_train, data_test, labels_train, labels_test = load_data(DATA_ROOT_2018)
 
     print('\n\n-----------------------------------------------------------\n')
     print('Fitting LinearSVC Model')

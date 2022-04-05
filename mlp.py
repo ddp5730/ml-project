@@ -260,6 +260,7 @@ def main():
     parser.add_argument('--learning-rate', type=float, required=True)
     parser.add_argument('--min-lr', type=float, required=True)
     parser.add_argument('--warmup-lr', type=float, required=True)
+    parser.add_argument('--dataset', choices=['2018', '2017'], default=2018)
 
     args = parser.parse_args()
 
