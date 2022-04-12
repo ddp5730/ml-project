@@ -92,7 +92,7 @@ def train_mlp(name, args):
         model.load_state_dict(torch.load(path))
         model.fc = nn.Linear(model.num_out_features, num_classes)
 
-    if args.transfer_learn == 'None':
+    if args.transfer_learn == 'None' or args.transfer_learn == 'fine_tune':
         for param in model.parameters():
             param.requires_grad = True
     elif args.transfer_learn == 'freeze_feature':
@@ -273,7 +273,7 @@ def main():
     parser.add_argument('--learning-rate', type=float, required=True)
     parser.add_argument('--min-lr', type=float, required=True)
     parser.add_argument('--warmup-lr', type=float, required=True)
-    parser.add_argument('--transfer-learn', choices=['None', 'freeze-feature', 'retrain-all'], default='None')
+    parser.add_argument('--transfer-learn', choices=['None', 'freeze-feature', 'fine-tune'], default='None')
     parser.add_argument('--source-classes', type=int, default=-1)
     parser.add_argument('--pretrained-path', type=str, default='')
 

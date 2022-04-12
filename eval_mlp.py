@@ -7,13 +7,15 @@ import argparse
 import os
 import sys
 
+import numpy as np
 import torch
-from sklearn.metrics import f1_score, accuracy_score
+from matplotlib import pyplot as plt
+from sklearn.metrics import f1_score, accuracy_score, confusion_matrix, ConfusionMatrixDisplay, classification_report
 from torch.utils.data import RandomSampler, SequentialSampler
 from tqdm import tqdm
 
 from load_data import get_datasets
-from mlp import MLP
+import mlp
 
 
 def eval_setup(pretrained_path, args):
@@ -22,10 +24,9 @@ def eval_setup(pretrained_path, args):
     """
 
     batch_size = args.batch_size
-    model = args.model
 
     # Load dataset
-    eval_dataset = get_datasets(DATA_ROOT_2018)
+    _, eval_dataset = get_datasets(args.dataset_dir)
 
     sampler = SequentialSampler(eval_dataset)
 
@@ -37,16 +38,17 @@ def eval_setup(pretrained_path, args):
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
     # Initialize Model
-    model = MLP(79, num_classes)
+    model = mlp.MLP(77, num_classes)
 
     model.load_state_dict(torch.load(pretrained_path))
 
     model = model.to(device)
 
-    eval_model(model, dataloader, device)
+    out_path = os.path.join('output', args.name)
+    eval_model(model, dataloader, device, out_path)
 
 
-def eval_model(model, dataloader, device):
+def eval_model(model, dataloader, device, out_path=None):
     model.eval()  # Set model to evaluate mode
     start_test = True
 
@@ -74,7 +76,23 @@ def eval_model(model, dataloader, device):
     val_f1_score = f1_score(all_labels, all_preds,
                             average='macro')
 
+    if out_path is not None:
+        plt.clf()
+        cf_matrix = confusion_matrix(all_labels, all_preds)
+        cf_matrix = cf_matrix.astype('float') / cf_matrix.sum(axis=1)[:, np.newaxis]
+        acc = cf_matrix.diagonal() / cf_matrix.sum(axis=1) * 100
+        disp = ConfusionMatrixDisplay.from_predictions(all_labels, all_preds,
+                                                       display_labels=dataloader.dataset.classes, values_format='0.2f',
+                                                       normalize='true', xticks_rotation='vertical')
+        disp.plot(values_format='0.2f', xticks_rotation='vertical')
+        plt.title('CF acc=%.2f%%' % top1_acc)
+        # plt.tight_layout()
+        plt.savefig(os.path.join(out_path, 'cf.png'))
+        plt.clf()
+
     print('Top-1 Acc: {:.4f} F1 Score: {:.4f}'.format(top1_acc, val_f1_score))
+    log_str = classification_report(all_labels, all_preds, target_names=dataloader.dataset.classes, digits=4)
+    print(log_str)
     return val_f1_score, top1_acc
 
 
@@ -84,7 +102,7 @@ def main():
     parser.add_argument('--dataset-dir', type=str, required=True)
     parser.add_argument('--test-dir', type=str, default='test')
     parser.add_argument('--batch-size', type=int, required=True)
-    parser.add_argument('--model', type=str, default='resnet50')
+    parser.add_argument('--name', type=str, default='debug')
     args = parser.parse_args()
 
     path = args.model_path
