@@ -85,7 +85,7 @@ def train_mlp(name, args):
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
     # Initialize Model
-    model = MLP(77, args.source_classes)
+    model = MLP(77, args.source_classes if args.transfer_learn != 'None' else num_classes)
     print(model)
     if args.transfer_learn != 'None':
         path = args.pretrained_path
@@ -273,9 +273,8 @@ def main():
     parser.add_argument('--learning-rate', type=float, required=True)
     parser.add_argument('--min-lr', type=float, required=True)
     parser.add_argument('--warmup-lr', type=float, required=True)
-    parser.add_argument('--dataset', choices=['2018', '2017'], default=2018)
     parser.add_argument('--transfer-learn', choices=['None', 'freeze-feature', 'retrain-all'], default='None')
-    parser.add_argument('--source-classes', type=int, required=True)
+    parser.add_argument('--source-classes', type=int, default=-1)
     parser.add_argument('--pretrained-path', type=str, default='')
 
     args = parser.parse_args()
