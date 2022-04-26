@@ -11,7 +11,7 @@ from matplotlib import pyplot as plt
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay
 
-from load_data import load_data, CIC_2017
+from load_data import load_data, CIC_2017, CIC_2018
 
 
 def main():
@@ -19,12 +19,13 @@ def main():
     parser.add_argument('--max-depth', default=10, help='Max Depth Hyperparam for RF')
     parser.add_argument('--data-path', required=True, help='Path to root directory of dataset')
     parser.add_argument('--dset', required=True, choices=[CIC_2017, CIC_2018], help='Dataset to classify')
+    parser.add_argument('--pkl-path', type=str, default=None,  help='Path to store pickle files.  Saves time by '
+                                                                    'storing preprocessed data')
 
     args = parser.parse_args()
 
     clf = RandomForestClassifier(max_depth=args.max_depth, random_state=0, n_jobs=20, verbose=1)
-    # TODO: Update to CL variable
-    data_train, data_test, labels_train, labels_test = load_data(args.dset, args.data_path)
+    data_train, data_test, labels_train, labels_test = load_data(args.dset, args.data_path, pkl_path=args.pkl_path)
 
     print('\n\n-----------------------------------------------------------\n')
     print('Fitting RF Model')

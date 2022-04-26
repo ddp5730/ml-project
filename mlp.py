@@ -16,9 +16,6 @@ from tqdm import tqdm
 import eval_mlp
 from load_data import get_datasets, CIC_2017, CIC_2018
 
-# TODO: Delete this
-DATA_ROOT_2018 = '/home/poppfd/data/CIC-IDS2018/Processed_Traffic_Data_for_ML_Algorithms/'
-
 
 class MLP(nn.Module):
     def __init__(self, num_features, num_classes, embeddings=False):
@@ -71,7 +68,7 @@ def train_mlp(name, args):
 
     # Load dataset
     # is_2018 = args.data_root == DATA_ROOT_2018
-    dataset_train, dataset_test = get_datasets(args.data_root)
+    dataset_train, dataset_test = get_datasets(args.dset, args.data_root, pkl_path=args.pkl_path)
     datasets = {train: dataset_train, test: dataset_test}
 
     samplers = {}
@@ -282,6 +279,8 @@ def main():
     parser.add_argument('--transfer-learn', choices=['None', 'freeze-feature', 'fine-tune'], default='None')
     parser.add_argument('--source-classes', type=int, default=-1)
     parser.add_argument('--pretrained-path', type=str, default='')
+    parser.add_argument('--pkl-path', type=str, help='Path to store pickle files.  Saves time by storing preprocessed '
+                                                     'data')
 
     args = parser.parse_args()
 
