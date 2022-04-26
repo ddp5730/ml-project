@@ -21,6 +21,12 @@ from load_data import get_datasets, CIC_2017, CIC_2018
 
 
 def eval_setup(pretrained_path, args):
+    """
+    Setup the data objects to evaluate the specified MLP model
+    :param pretrained_path: Path to the pretrained model weights
+    :param args: The command line arguments
+    :return: None
+    """
 
     batch_size = args.batch_size
 
@@ -47,6 +53,16 @@ def eval_setup(pretrained_path, args):
 
 
 def eval_model(model, dataloader, device, out_path=None, tsne=False, tsne_percent=0.01):
+    """
+    Evaluate the given model
+    :param model: The MLP model
+    :param dataloader: Dataloader for the evaluation data
+    :param device: string for the specified device to perform computation
+    :param out_path: Path to the output dir to save information
+    :param tsne: Boolean flag on whether to perform TSNE visualization
+    :param tsne_percent: The percentage of evaluation data to plot for TSNE
+    :return: The f1-score and accuracy
+    """
     model.eval()  # Set model to evaluate mode
     start_test = True
 

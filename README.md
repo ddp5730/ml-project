@@ -3,10 +3,11 @@ TODO:
 ~~* Change path variables to be command line arguments~~
 ~~* Update t-SNE to be a command line argument~~
 ~~* Update Dockerfile to contain all information required~~
-* Add method docstring comments
+~~* Add method docstring comments~~
 * Review OpenSource document about requirements
-* Don't forget about compare_dataset_features util function
+~~* Don't forget about compare_dataset_features util function~~
 * Add help strings for command line arguments
+* Add instructions for downloading dataset
 * Finalize this readme file
 * Add slides to project
 

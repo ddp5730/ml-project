@@ -22,7 +22,7 @@ BENIGN_LABEL_2017 = 'BENIGN'
 def load_data(dset, data_path, pkl_path=None):
     """
     Read in the entire 2018 dataset
-    :param pkl_path:
+    :param pkl_path: Path to the pickle objects
     :param is_2018: True if loading 2018 data.  False for 2017 data
     :param data_path: the path to the root data directory
     :return: a tuple for the full numpy arrays and labels
@@ -77,6 +77,13 @@ def load_data(dset, data_path, pkl_path=None):
 
 
 def get_datasets(dset, data_path, pkl_path=None):
+    """
+    Load the data into PyTorch Dataset structures for PyTorch processing
+    :param dset: String for the dataset desired.
+    :param data_path: Path to the root directory for the dataset
+    :param pkl_path: Path to the pickle data objects
+    :return: Training and testing datasets
+    """
     data_train, data_test, labels_train, labels_test = load_data(dset, data_path, pkl_path)
     data_train = torch.tensor(data_train)
     data_test = torch.tensor(data_test)
@@ -117,8 +124,8 @@ def get_datasets(dset, data_path, pkl_path=None):
 def get_data(file, is_2018=True, pkl_path=None):
     """
     Reads the csv file using pandas and returns the data and labels as numpy arrays
-    :param pkl_path:
-    :param is_2018:
+    :param pkl_path: Path to the pickle file objects
+    :param is_2018: Flag for whether to handle as 2018 or 2017 dataset
     :param file: The file to read from
     :return: a tuple of numpy arrays and the labels
     """

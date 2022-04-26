@@ -51,7 +51,9 @@ class MLP(nn.Module):
 
 def train_mlp(name, args):
     """
-    This function will test transfer learning using the provided PETS data
+    Function to setup the PyTorch model and objects.
+    :param name: The name of the run.  Used for output save path
+    :param args: The command line arguments.
     """
 
     train = 'train'
@@ -59,7 +61,6 @@ def train_mlp(name, args):
 
     batch_size = args.batch_size
     eval_batch_size = args.eval_batch_size
-    eval_batch_freq = 50000
     num_epochs = args.num_epochs
     warmup_epochs = args.warmup_epochs
     learning_rate = args.learning_rate
@@ -120,6 +121,9 @@ def train_mlp(name, args):
         t_in_epochs=False,
     )
 
+    # Could make this a command line argument
+    eval_batch_freq = len(dataloaders[train]) // 5
+
     out_dir = os.path.join('./output/', name)
     if not os.path.isdir(out_dir):
         os.mkdir(out_dir)
@@ -139,6 +143,21 @@ def train_mlp(name, args):
 
 def train_model(model, criterion, optimizer, scheduler, dataloaders, device, eval_batch_freq, out_dir, train, test,
                 num_epochs=25):
+    """
+    Perform the model training
+    :param model: The MLP model to train
+    :param criterion: The loss function
+    :param optimizer: The optimizer object
+    :param scheduler: The learning rate scheduler object
+    :param dataloaders: Dictionary containing the training and testing dataset
+    :param device: String for the device to perform training on
+    :param eval_batch_freq: Number of iterations to perform between evaluation of model.
+    :param out_dir: The output directory to save
+    :param train: string denoting train key in dataloaders
+    :param test: string denoting test key in dataloaders
+    :param num_epochs: The number of epochs to train over
+    :return:
+    """
     writer = SummaryWriter(log_dir=os.path.join(out_dir, 'tensorboard_logs'))
 
     since = time.time()
