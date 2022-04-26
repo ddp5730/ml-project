@@ -4,6 +4,7 @@
 #
 # This script will train an EfficientNet model on Rareplanes to use as a baseline for a CNN comparison
 import argparse
+import math
 import os
 import sys
 
@@ -12,26 +13,26 @@ import torch
 from matplotlib import pyplot as plt
 from sklearn.manifold import TSNE
 from sklearn.metrics import f1_score, accuracy_score, confusion_matrix, ConfusionMatrixDisplay, classification_report
-from torch.utils.data import RandomSampler, SequentialSampler
+from torch.utils.data import RandomSampler
 from tqdm import tqdm
 
-from load_data import get_datasets
 import mlp
-
-RUN_TSNE = False
+from load_data import get_datasets, CIC_2017, CIC_2018
 
 
 def eval_setup(pretrained_path, args):
     """
-    This function will test transfer learning using the provided PETS data
+    Setup the data objects to evaluate the specified MLP model
+    :param pretrained_path: Path to the pretrained model weights
+    :param args: The command line arguments
+    :return: None
     """
 
     batch_size = args.batch_size
 
     # Load dataset
-    _, eval_dataset = get_datasets(args.dataset_dir)
-
-    sampler = RandomSampler(eval_dataset)
+    _, eval_dataset = get_datasets(args.dset, args.data_path, pkl_path=args.pkl_path)
+    sampler = RandomSampler(eval_dataset)  # RandomSample for more balance for t-SNE
 
     dataloader = torch.utils.data.DataLoader(eval_dataset, batch_size=batch_size, sampler=sampler,
                                              num_workers=20)
@@ -41,23 +42,33 @@ def eval_setup(pretrained_path, args):
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
     # Initialize Model
-    model = mlp.MLP(77, num_classes, embeddings=RUN_TSNE)
+    model = mlp.MLP(77, num_classes, embeddings=args.tsne)
 
     model.load_state_dict(torch.load(pretrained_path))
 
     model = model.to(device)
 
     out_path = os.path.join('output', args.name)
-    eval_model(model, dataloader, device, out_path, tsne=RUN_TSNE)
+    eval_model(model, dataloader, device, out_path, tsne=args.tsne, tsne_percent=args.tsne_percent)
 
 
-def eval_model(model, dataloader, device, out_path=None, tsne=False):
+def eval_model(model, dataloader, device, out_path=None, tsne=False, tsne_percent=0.01):
+    """
+    Evaluate the given model
+    :param model: The MLP model
+    :param dataloader: Dataloader for the evaluation data
+    :param device: string for the specified device to perform computation
+    :param out_path: Path to the output dir to save information
+    :param tsne: Boolean flag on whether to perform TSNE visualization
+    :param tsne_percent: The percentage of evaluation data to plot for TSNE
+    :return: The f1-score and accuracy
+    """
     model.eval()  # Set model to evaluate mode
     start_test = True
 
     # Iterate over data.
     if tsne:
-        max_iter = len(dataloader) // 100
+        max_iter = math.floor(len(dataloader) * tsne_percent)
     else:
         max_iter = len(dataloader) + 5
     iterator = tqdm(dataloader, file=sys.stdout)
@@ -131,11 +142,18 @@ def eval_model(model, dataloader, device, out_path=None, tsne=False):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model-path', type=str, required=True)
-    parser.add_argument('--dataset-dir', type=str, required=True)
-    parser.add_argument('--test-dir', type=str, default='test')
-    parser.add_argument('--batch-size', type=int, required=True)
-    parser.add_argument('--name', type=str, default='debug')
+    parser.add_argument('--model-path', type=str, required=True, help='Path to the pretrained weights')
+    parser.add_argument('--data-root', type=str, required=True, help='Path to the dataset files')
+    parser.add_argument('--dset', required=True, choices=[CIC_2017, CIC_2018], help='Specify which dataset to use for'
+                                                                                    'evaluation')
+    parser.add_argument('--batch-size', type=int, required=True, help='The batch size to use for evaluation')
+    parser.add_argument('--name', type=str, default='debug', help='Unique name used for saving output files')
+    parser.add_argument('--pkl-path', type=str, help='Path to store pickle files.  Saves time by storing preprocessed '
+                                                     'data')
+    parser.add_argument('--tsne', action='store_true', help='If set generates TSNE plots using subset of data.'
+                                                            'Other metrics are not valid')
+    parser.add_argument('--tsne-percent', default=0.01, help='To speed up TSNE, only run on a small portion of the '
+                                                             'dataset')
     args = parser.parse_args()
 
     path = args.model_path

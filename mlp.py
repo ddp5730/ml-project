@@ -14,16 +14,14 @@ from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
 import eval_mlp
-from load_data import get_datasets
-
-DATA_ROOT_2018 = '/home/poppfd/data/CIC-IDS2018/Processed_Traffic_Data_for_ML_Algorithms/'
+from load_data import get_datasets, CIC_2017, CIC_2018
 
 
 class MLP(nn.Module):
     def __init__(self, num_features, num_classes, embeddings=False):
         super().__init__()
 
-        self.embeddings=embeddings
+        self.embeddings = embeddings
 
         self.num_out_features = 100
         self.layer1 = nn.Linear(num_features, 100)
@@ -32,7 +30,6 @@ class MLP(nn.Module):
         self.layer4 = nn.Linear(500, 200)
         self.layer5 = nn.Linear(200, self.num_out_features)
         self.fc = nn.Linear(100, num_classes)
-
 
         self.act = nn.ReLU()
         self.softmax = nn.Softmax(dim=0)
@@ -54,7 +51,9 @@ class MLP(nn.Module):
 
 def train_mlp(name, args):
     """
-    This function will test transfer learning using the provided PETS data
+    Function to setup the PyTorch model and objects.
+    :param name: The name of the run.  Used for output save path
+    :param args: The command line arguments.
     """
 
     train = 'train'
@@ -62,7 +61,6 @@ def train_mlp(name, args):
 
     batch_size = args.batch_size
     eval_batch_size = args.eval_batch_size
-    eval_batch_freq = 50000
     num_epochs = args.num_epochs
     warmup_epochs = args.warmup_epochs
     learning_rate = args.learning_rate
@@ -71,7 +69,7 @@ def train_mlp(name, args):
 
     # Load dataset
     # is_2018 = args.data_root == DATA_ROOT_2018
-    dataset_train, dataset_test = get_datasets(args.data_root)
+    dataset_train, dataset_test = get_datasets(args.dset, args.data_root, pkl_path=args.pkl_path)
     datasets = {train: dataset_train, test: dataset_test}
 
     samplers = {}
@@ -123,6 +121,9 @@ def train_mlp(name, args):
         t_in_epochs=False,
     )
 
+    # Could make this a command line argument
+    eval_batch_freq = len(dataloaders[train]) // 5
+
     out_dir = os.path.join('./output/', name)
     if not os.path.isdir(out_dir):
         os.mkdir(out_dir)
@@ -142,6 +143,21 @@ def train_mlp(name, args):
 
 def train_model(model, criterion, optimizer, scheduler, dataloaders, device, eval_batch_freq, out_dir, train, test,
                 num_epochs=25):
+    """
+    Perform the model training
+    :param model: The MLP model to train
+    :param criterion: The loss function
+    :param optimizer: The optimizer object
+    :param scheduler: The learning rate scheduler object
+    :param dataloaders: Dictionary containing the training and testing dataset
+    :param device: String for the device to perform training on
+    :param eval_batch_freq: Number of iterations to perform between evaluation of model.
+    :param out_dir: The output directory to save
+    :param train: string denoting train key in dataloaders
+    :param test: string denoting test key in dataloaders
+    :param num_epochs: The number of epochs to train over
+    :return:
+    """
     writer = SummaryWriter(log_dir=os.path.join(out_dir, 'tensorboard_logs'))
 
     since = time.time()
@@ -270,17 +286,22 @@ def train_model(model, criterion, optimizer, scheduler, dataloaders, device, eva
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--name', type=str, required=True, help='Name for the run')
-    parser.add_argument('--data-root', type=str, required=True)
-    parser.add_argument('--batch-size', type=int, required=True)
-    parser.add_argument('--eval-batch-size', type=int, required=True)
-    parser.add_argument('--num-epochs', type=int, required=True)
-    parser.add_argument('--warmup-epochs', type=int, required=True)
-    parser.add_argument('--learning-rate', type=float, required=True)
-    parser.add_argument('--min-lr', type=float, required=True)
-    parser.add_argument('--warmup-lr', type=float, required=True)
-    parser.add_argument('--transfer-learn', choices=['None', 'freeze-feature', 'fine-tune'], default='None')
-    parser.add_argument('--source-classes', type=int, default=-1)
-    parser.add_argument('--pretrained-path', type=str, default='')
+    parser.add_argument('--data-root', type=str, required=True, help='Path to dataset')
+    parser.add_argument('--dset', required=True, choices=[CIC_2017, CIC_2018], help='Dataset to use for training')
+    parser.add_argument('--batch-size', type=int, required=True, help='Number of samples for a single training batch')
+    parser.add_argument('--eval-batch-size', type=int, required=True, help='Number of samples for evaluation batch')
+    parser.add_argument('--num-epochs', type=int, required=True, help='Number of epochs to train')
+    parser.add_argument('--warmup-epochs', type=int, required=True, help='Number of epochs to use reduced learning rate')
+    parser.add_argument('--learning-rate', type=float, required=True, help='Base lr to use for training')
+    parser.add_argument('--min-lr', type=float, required=True, help='Min lr used for training')
+    parser.add_argument('--warmup-lr', type=float, required=True, help='lr to use during warmup')
+    parser.add_argument('--transfer-learn', choices=['None', 'freeze-feature', 'fine-tune'], default='None',
+                        help='Specify which type of transfer learning to use')
+    parser.add_argument('--source-classes', type=int, default=-1, help='The number of classes present for the source'
+                                                                       'trained model')
+    parser.add_argument('--pretrained-path', type=str, default='', help='Path to the pretrained model weights')
+    parser.add_argument('--pkl-path', type=str, help='Path to store pickle files.  Saves time by storing preprocessed '
+                                                     'data')
 
     args = parser.parse_args()
 

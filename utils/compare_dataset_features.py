@@ -1,3 +1,9 @@
+# compare_dataset_features.py
+# 4/08/2018
+# Dan Popp
+#
+# This file will handle information about comparing attributes between the two datasets.
+
 import os
 
 import pandas as pd
@@ -169,6 +175,10 @@ unique_2018_attributes = ['Protocol',
 
 
 def main():
+    """
+    Print out some helpful info about the attributes of both datasets
+    :return:
+    """
     file_2018 = os.path.join(DATA_ROOT_2018, os.listdir(DATA_ROOT_2018)[0])
     file_2017 = os.path.join(DATA_ROOT_2017, os.listdir(DATA_ROOT_2017)[0])
 
@@ -193,6 +203,11 @@ def main():
 
 
 def get_attribute_map(debug=False):
+    """
+    Return the mapping of attribute string names between the 2017 and 2018 dataset.
+    :param debug: If set this function will print out debug info
+    :return: A map containing the 2017 attribute string as the key and the 2018 attribute as the value
+    """
     attribute_map_2017_to_2018 = {}
     for i in range(len(attributes_2017)):
         if attributes_2017[i] in unique_2017_attributes:

@@ -1,5 +1,6 @@
 import os
 import pickle
+import sys
 
 import numpy as np
 import pandas as pd
@@ -11,17 +12,17 @@ import data_preprocessing
 from data_preprocessing import resample_data
 from utils.compare_dataset_features import unique_2018_attributes, get_attribute_map, attributes_2018, attributes_2017
 
-PICKLE_PATH = '/home/poppfd/College/ML_Cyber/ml-project/data/'
-DATA_ROOT_2018 = '/home/poppfd/data/CIC-IDS2018/Processed_Traffic_Data_for_ML_Algorithms/'
-DATA_ROOT_2017 = '/home/poppfd/data/CIC-IDS2017/MachineLearningCVE'
+CIC_2017 = 'cic-2017'
+CIC_2018 = 'cic-2018'
 
 BENIGN_LABEL_2018 = 'Benign'
 BENIGN_LABEL_2017 = 'BENIGN'
 
 
-def load_data(data_path):
+def load_data(dset, data_path, pkl_path=None):
     """
     Read in the entire 2018 dataset
+    :param pkl_path: Path to the pickle objects
     :param is_2018: True if loading 2018 data.  False for 2017 data
     :param data_path: the path to the root data directory
     :return: a tuple for the full numpy arrays and labels
@@ -30,17 +31,19 @@ def load_data(data_path):
     all_labels = []
     all_dropped = 0
 
-    is_2018 = DATA_ROOT_2018==data_path
+    is_2018 = dset == CIC_2018
 
-    pkl_path = os.path.join(PICKLE_PATH, 'all_data_%s.pkl' % ('2018' if is_2018 else '2017'))
-    if os.path.exists(pkl_path):
-        with open(pkl_path, 'rb') as file:
-            data_train, data_test, labels_train, labels_test = pickle.load(file)
+    if pkl_path is not None:
+        pkl_path = os.path.join(pkl_path, 'all_data_%s.pkl' % ('2018' if is_2018 else '2017'))
+        if os.path.exists(pkl_path):
+            with open(pkl_path, 'rb') as file:
+                data_train, data_test, labels_train, labels_test = pickle.load(file)
+        else:
+            print('Pickle Path was invalid', file=sys.stderr)
     else:
         for file in os.listdir(data_path):
             print('Loading file: %s ...' % file)
-            data_root = DATA_ROOT_2018 if is_2018 else DATA_ROOT_2017
-            data, labels, num_dropped = get_data(os.path.join(data_root, file), is_2018=is_2018)
+            data, labels, num_dropped = get_data(os.path.join(data_path, file), is_2018=is_2018)
 
             if all_data is None:
                 all_data = data
@@ -66,14 +69,22 @@ def load_data(data_path):
         data_train, labels_train, classes_to_drop = resample_data(data_train, labels_train, is_2018=is_2018)
         data_test, labels_test = data_preprocessing.drop_classes(data_test, labels_test, classes_to_drop)
 
-        with open(pkl_path, 'wb') as file:
-            pickle.dump((data_train, data_test, labels_train, labels_test), file)
+        if pkl_path:
+            with open(pkl_path, 'wb') as file:
+                pickle.dump((data_train, data_test, labels_train, labels_test), file)
 
     return data_train, data_test, labels_train, labels_test
 
 
-def get_datasets(data_path):
-    data_train, data_test, labels_train, labels_test = load_data(data_path)
+def get_datasets(dset, data_path, pkl_path=None):
+    """
+    Load the data into PyTorch Dataset structures for PyTorch processing
+    :param dset: String for the dataset desired.
+    :param data_path: Path to the root directory for the dataset
+    :param pkl_path: Path to the pickle data objects
+    :return: Training and testing datasets
+    """
+    data_train, data_test, labels_train, labels_test = load_data(dset, data_path, pkl_path)
     data_train = torch.tensor(data_train)
     data_test = torch.tensor(data_test)
 
@@ -110,19 +121,24 @@ def get_datasets(data_path):
     return dataset_train, dataset_test
 
 
-def get_data(file, is_2018=True):
+def get_data(file, is_2018=True, pkl_path=None):
     """
     Reads the csv file using pandas and returns the data and labels as numpy arrays
+    :param pkl_path: Path to the pickle file objects
+    :param is_2018: Flag for whether to handle as 2018 or 2017 dataset
     :param file: The file to read from
     :return: a tuple of numpy arrays and the labels
     """
 
     filename = os.path.splitext(os.path.basename(file))[0] + '.pkl'
-    pkl_path = os.path.join(PICKLE_PATH, filename)
 
-    if os.path.exists(pkl_path):
-        with open(pkl_path, 'rb') as file:
-            data_np, labels_list, num_dropped = pickle.load(file)
+    if pkl_path is not None:
+        pkl_path = os.path.join(pkl_path, filename)
+        if os.path.exists(pkl_path):
+            with open(pkl_path, 'rb') as file:
+                data_np, labels_list, num_dropped = pickle.load(file)
+        else:
+            print('Pickle Path was invalid', file=sys.stderr)
     else:
 
         if is_2018:
@@ -146,7 +162,6 @@ def get_data(file, is_2018=True):
                 data = data.drop('Src Port', axis=1)
             if 'Dst IP' in df:
                 data = data.drop('Dst IP', axis=1)
-            # TODO: Figure out how to handle target port number
 
             # Drop data that isn't in 2017 dataset
             for attribute in unique_2018_attributes:
@@ -190,8 +205,9 @@ def get_data(file, is_2018=True):
         # Normalize data
         data_np = normalize(data_np)
 
-        with open(pkl_path, 'wb') as file:
-            pickle.dump((data_np, labels_list, num_dropped), file)
+        if pkl_path:
+            with open(pkl_path, 'wb') as file:
+                pickle.dump((data_np, labels_list, num_dropped), file)
 
     return data_np, labels_list, num_dropped
 

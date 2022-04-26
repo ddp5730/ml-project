@@ -9,7 +9,7 @@ import time
 
 import matplotlib.pyplot as plt
 import numpy as np
-from imblearn.over_sampling import SMOTE, RandomOverSampler
+from imblearn.over_sampling import RandomOverSampler
 from imblearn.under_sampling import RandomUnderSampler
 from tqdm import tqdm
 
@@ -19,6 +19,7 @@ def clean_np_data(data, labels):
     Cleans the numpy data array.  The effect is to remove NaN and Inf values by using a nearest neighbor approach.
     Data deemed to be invalid will also be adjusted to the nearest valid value
     :param data: The data array
+    :param labels: List of the labels for each sample from the data array
     :return: the processed data array
     """
 
@@ -59,6 +60,7 @@ def resample_data(data, labels, is_2018=True):
     Finally SMOTE is used to oversample minority classes up to 20% of the majority class.
     :param data: The data
     :param labels: the labels
+    :param is_2018: A flag to denote if this should be processed as the 2018 or 2017 dataset
     :return: returns the updated data and labels along with a list of classes to drop from the testing data.
     """
 
@@ -141,6 +143,13 @@ def resample_data(data, labels, is_2018=True):
 
 
 def drop_classes(data, labels, classes_to_drop):
+    """
+    Drops the classes specified in the classes_to_drop list from the data and labels structures
+    :param data: The entire numpy dataset
+    :param labels: The labels list for the data array
+    :param classes_to_drop: A list of the classes that should be dropped from the dataset
+    :return: The updated data and labels objects
+    """
     drop_row = np.full(len(labels), False)
     for i in range(len(labels)):
         if labels[i] in classes_to_drop:
@@ -159,6 +168,12 @@ def drop_classes(data, labels, classes_to_drop):
 
 
 def save_class_hist(samples_dict: dict, name: str):
+    """
+    Saves the histogram for the specified distribution.  Useful for comparing class distribution during preprocessing
+    :param samples_dict: The dictionary containing class name as the key and the number of samples as the value
+    :param name: Unique name for savefile name.
+    :return: None
+    """
     classes = samples_dict.keys()
     samples = []
     for class_name in classes:
@@ -172,5 +187,5 @@ def save_class_hist(samples_dict: dict, name: str):
     plt.xticks(rotation=90)
     plt.grid(True)
     plt.tight_layout()
-    plt.savefig(os.path.join('./out/', '%s.png' % name))
+    plt.savefig(os.path.join('./out/', '%s.png' % name))  # TODO: Update to use specified output directory
     plt.clf()
