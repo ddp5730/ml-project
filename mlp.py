@@ -14,8 +14,9 @@ from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
 import eval_mlp
-from load_data import get_datasets
+from load_data import get_datasets, CIC_2017, CIC_2018
 
+# TODO: Delete this
 DATA_ROOT_2018 = '/home/poppfd/data/CIC-IDS2018/Processed_Traffic_Data_for_ML_Algorithms/'
 
 
@@ -23,7 +24,7 @@ class MLP(nn.Module):
     def __init__(self, num_features, num_classes, embeddings=False):
         super().__init__()
 
-        self.embeddings=embeddings
+        self.embeddings = embeddings
 
         self.num_out_features = 100
         self.layer1 = nn.Linear(num_features, 100)
@@ -32,7 +33,6 @@ class MLP(nn.Module):
         self.layer4 = nn.Linear(500, 200)
         self.layer5 = nn.Linear(200, self.num_out_features)
         self.fc = nn.Linear(100, num_classes)
-
 
         self.act = nn.ReLU()
         self.softmax = nn.Softmax(dim=0)
@@ -271,6 +271,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--name', type=str, required=True, help='Name for the run')
     parser.add_argument('--data-root', type=str, required=True)
+    parser.add_argument('--dset', required=True, choices=[CIC_2017, CIC_2018])
     parser.add_argument('--batch-size', type=int, required=True)
     parser.add_argument('--eval-batch-size', type=int, required=True)
     parser.add_argument('--num-epochs', type=int, required=True)

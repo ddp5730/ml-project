@@ -12,12 +12,13 @@ import torch
 from matplotlib import pyplot as plt
 from sklearn.manifold import TSNE
 from sklearn.metrics import f1_score, accuracy_score, confusion_matrix, ConfusionMatrixDisplay, classification_report
-from torch.utils.data import RandomSampler, SequentialSampler
+from torch.utils.data import RandomSampler
 from tqdm import tqdm
 
-from load_data import get_datasets
 import mlp
+from load_data import get_datasets
 
+# TODO: Make this command line argument
 RUN_TSNE = False
 
 
@@ -30,8 +31,7 @@ def eval_setup(pretrained_path, args):
 
     # Load dataset
     _, eval_dataset = get_datasets(args.dataset_dir)
-
-    sampler = RandomSampler(eval_dataset)
+    sampler = RandomSampler(eval_dataset)  # RandomSample for more balance for t-SNE
 
     dataloader = torch.utils.data.DataLoader(eval_dataset, batch_size=batch_size, sampler=sampler,
                                              num_workers=20)

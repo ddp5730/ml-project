@@ -9,7 +9,7 @@ import time
 
 import matplotlib.pyplot as plt
 import numpy as np
-from imblearn.over_sampling import SMOTE, RandomOverSampler
+from imblearn.over_sampling import RandomOverSampler
 from imblearn.under_sampling import RandomUnderSampler
 from tqdm import tqdm
 

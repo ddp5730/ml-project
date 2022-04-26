@@ -11,15 +11,19 @@ import data_preprocessing
 from data_preprocessing import resample_data
 from utils.compare_dataset_features import unique_2018_attributes, get_attribute_map, attributes_2018, attributes_2017
 
+# TODO: Make pickle_path a command line argument
+# TODO: Make data paths command line arguments
+# TODO: Make datasetname the argument compared against and command line argument
 PICKLE_PATH = '/home/poppfd/College/ML_Cyber/ml-project/data/'
-DATA_ROOT_2018 = '/home/poppfd/data/CIC-IDS2018/Processed_Traffic_Data_for_ML_Algorithms/'
-DATA_ROOT_2017 = '/home/poppfd/data/CIC-IDS2017/MachineLearningCVE'
+
+CIC_2017 = 'cic-2017'
+CIC_2018 = 'cic-2018'
 
 BENIGN_LABEL_2018 = 'Benign'
 BENIGN_LABEL_2017 = 'BENIGN'
 
 
-def load_data(data_path):
+def load_data(dset, data_path):
     """
     Read in the entire 2018 dataset
     :param is_2018: True if loading 2018 data.  False for 2017 data
@@ -30,7 +34,7 @@ def load_data(data_path):
     all_labels = []
     all_dropped = 0
 
-    is_2018 = DATA_ROOT_2018==data_path
+    is_2018 = dset == CIC_2018
 
     pkl_path = os.path.join(PICKLE_PATH, 'all_data_%s.pkl' % ('2018' if is_2018 else '2017'))
     if os.path.exists(pkl_path):
@@ -39,8 +43,7 @@ def load_data(data_path):
     else:
         for file in os.listdir(data_path):
             print('Loading file: %s ...' % file)
-            data_root = DATA_ROOT_2018 if is_2018 else DATA_ROOT_2017
-            data, labels, num_dropped = get_data(os.path.join(data_root, file), is_2018=is_2018)
+            data, labels, num_dropped = get_data(os.path.join(data_path, file), is_2018=is_2018)
 
             if all_data is None:
                 all_data = data
@@ -72,8 +75,8 @@ def load_data(data_path):
     return data_train, data_test, labels_train, labels_test
 
 
-def get_datasets(data_path):
-    data_train, data_test, labels_train, labels_test = load_data(data_path)
+def get_datasets(dset, data_path):
+    data_train, data_test, labels_train, labels_test = load_data(dset, data_path)
     data_train = torch.tensor(data_train)
     data_test = torch.tensor(data_test)
 
@@ -113,6 +116,7 @@ def get_datasets(data_path):
 def get_data(file, is_2018=True):
     """
     Reads the csv file using pandas and returns the data and labels as numpy arrays
+    :param is_2018:
     :param file: The file to read from
     :return: a tuple of numpy arrays and the labels
     """
@@ -146,7 +150,6 @@ def get_data(file, is_2018=True):
                 data = data.drop('Src Port', axis=1)
             if 'Dst IP' in df:
                 data = data.drop('Dst IP', axis=1)
-            # TODO: Figure out how to handle target port number
 
             # Drop data that isn't in 2017 dataset
             for attribute in unique_2018_attributes:
