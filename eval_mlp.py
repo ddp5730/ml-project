@@ -142,11 +142,12 @@ def eval_model(model, dataloader, device, out_path=None, tsne=False, tsne_percen
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model-path', type=str, required=True)
-    parser.add_argument('--data-root', type=str, required=True)
-    parser.add_argument('--dset', required=True, choices=[CIC_2017, CIC_2018])
-    parser.add_argument('--batch-size', type=int, required=True)
-    parser.add_argument('--name', type=str, default='debug')
+    parser.add_argument('--model-path', type=str, required=True, help='Path to the pretrained weights')
+    parser.add_argument('--data-root', type=str, required=True, help='Path to the dataset files')
+    parser.add_argument('--dset', required=True, choices=[CIC_2017, CIC_2018], help='Specify which dataset to use for'
+                                                                                    'evaluation')
+    parser.add_argument('--batch-size', type=int, required=True, help='The batch size to use for evaluation')
+    parser.add_argument('--name', type=str, default='debug', help='Unique name used for saving output files')
     parser.add_argument('--pkl-path', type=str, help='Path to store pickle files.  Saves time by storing preprocessed '
                                                      'data')
     parser.add_argument('--tsne', action='store_true', help='If set generates TSNE plots using subset of data.'

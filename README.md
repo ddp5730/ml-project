@@ -6,7 +6,7 @@ TODO:
 ~~* Add method docstring comments~~
 * Review OpenSource document about requirements
 ~~* Don't forget about compare_dataset_features util function~~
-* Add help strings for command line arguments
+~~* Add help strings for command line arguments~~
 * Add instructions for downloading dataset
 * Finalize this readme file
 * Add slides to project

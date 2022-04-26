@@ -286,18 +286,20 @@ def train_model(model, criterion, optimizer, scheduler, dataloaders, device, eva
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--name', type=str, required=True, help='Name for the run')
-    parser.add_argument('--data-root', type=str, required=True)
-    parser.add_argument('--dset', required=True, choices=[CIC_2017, CIC_2018])
-    parser.add_argument('--batch-size', type=int, required=True)
-    parser.add_argument('--eval-batch-size', type=int, required=True)
-    parser.add_argument('--num-epochs', type=int, required=True)
-    parser.add_argument('--warmup-epochs', type=int, required=True)
-    parser.add_argument('--learning-rate', type=float, required=True)
-    parser.add_argument('--min-lr', type=float, required=True)
-    parser.add_argument('--warmup-lr', type=float, required=True)
-    parser.add_argument('--transfer-learn', choices=['None', 'freeze-feature', 'fine-tune'], default='None')
-    parser.add_argument('--source-classes', type=int, default=-1)
-    parser.add_argument('--pretrained-path', type=str, default='')
+    parser.add_argument('--data-root', type=str, required=True, help='Path to dataset')
+    parser.add_argument('--dset', required=True, choices=[CIC_2017, CIC_2018], help='Dataset to use for training')
+    parser.add_argument('--batch-size', type=int, required=True, help='Number of samples for a single training batch')
+    parser.add_argument('--eval-batch-size', type=int, required=True, help='Number of samples for evaluation batch')
+    parser.add_argument('--num-epochs', type=int, required=True, help='Number of epochs to train')
+    parser.add_argument('--warmup-epochs', type=int, required=True, help='Number of epochs to use reduced learning rate')
+    parser.add_argument('--learning-rate', type=float, required=True, help='Base lr to use for training')
+    parser.add_argument('--min-lr', type=float, required=True, help='Min lr used for training')
+    parser.add_argument('--warmup-lr', type=float, required=True, help='lr to use during warmup')
+    parser.add_argument('--transfer-learn', choices=['None', 'freeze-feature', 'fine-tune'], default='None',
+                        help='Specify which type of transfer learning to use')
+    parser.add_argument('--source-classes', type=int, default=-1, help='The number of classes present for the source'
+                                                                       'trained model')
+    parser.add_argument('--pretrained-path', type=str, default='', help='Path to the pretrained model weights')
     parser.add_argument('--pkl-path', type=str, help='Path to store pickle files.  Saves time by storing preprocessed '
                                                      'data')
 
