@@ -20,8 +20,10 @@ DATA_ROOT_2018 = '/home/poppfd/data/CIC-IDS2018/Processed_Traffic_Data_for_ML_Al
 
 
 class MLP(nn.Module):
-    def __init__(self, num_features, num_classes):
+    def __init__(self, num_features, num_classes, embeddings=False):
         super().__init__()
+
+        self.embeddings=embeddings
 
         self.num_out_features = 100
         self.layer1 = nn.Linear(num_features, 100)
@@ -40,11 +42,14 @@ class MLP(nn.Module):
         x = self.act(self.layer2(x))
         x = self.act(self.layer3(x))
         x = self.act(self.layer4(x))
-        x = self.act(self.layer5(x))
-        x = self.fc(x)
+        features = self.act(self.layer5(x))
+        x = self.fc(features)
         x = self.softmax(x)
 
-        return x
+        if self.embeddings:
+            return x, features
+        else:
+            return x
 
 
 def train_mlp(name, args):

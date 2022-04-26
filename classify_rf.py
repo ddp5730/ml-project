@@ -10,7 +10,7 @@ from matplotlib import pyplot as plt
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay
 
-from load_data import load_data, DATA_ROOT_2017
+from load_data import load_data, DATA_ROOT_2017, DATA_ROOT_2018
 
 
 def main():
