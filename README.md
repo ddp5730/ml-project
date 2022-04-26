@@ -38,7 +38,7 @@ Otherwise, feel free to set up the environment in whatever way you want.
     ```
    $ docker build -t <desired-tag> -f Dockerfile.new .
     ```
-5. Run Docker Container.  <tag> must be the same tag used in step 4.
+5. Run Docker Container.  `<tag>` must be the same tag used in step 4.
    ```
    docker run -it --gpus all --shm-size=25G -e HOME=$HOME -e USER=$USER -v $HOME:$HOME -w $HOME --user <created-user> <tag>
    ```
