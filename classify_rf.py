@@ -10,14 +10,12 @@ from matplotlib import pyplot as plt
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay
 
-from load_data import load_2018_data
-
-DATA_ROOT_2018 = '/home/poppfd/data/CIC-IDS2018/Processed_Traffic_Data_for_ML_Algorithms/'
+from load_data import load_data, DATA_ROOT_2017, DATA_ROOT_2018
 
 
 def main():
     clf = RandomForestClassifier(max_depth=10, random_state=0, n_jobs=20, verbose=1)
-    data_train, data_test, labels_train, labels_test = load_2018_data(DATA_ROOT_2018)
+    data_train, data_test, labels_train, labels_test = load_data(DATA_ROOT_2017)
 
     print('\n\n-----------------------------------------------------------\n')
     print('Fitting RF Model')

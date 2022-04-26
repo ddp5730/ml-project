@@ -4,3 +4,6 @@ out/
 data/
 output/
 scripts/
+
+__pycache__/
+*/__pycache__/
